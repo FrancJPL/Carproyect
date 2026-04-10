@@ -5,7 +5,7 @@ public class BotonJugar : MonoBehaviour
 {
     public void IrALaPista()
     {
-        SceneManager.LoadScene("Pista nevada"); // Usa el nombre exacto de la escena
+        SceneManager.LoadScene("Trak1"); // Usa el nombre exacto de la escena
         Debug.Log("¡Vamos a correr pocho style!");
     }
 }
