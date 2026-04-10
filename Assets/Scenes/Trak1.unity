@@ -3661,9 +3661,12 @@ MonoBehaviour:
   reverseForce: 800
   maxSteerAngle: 25
   steerSpeed: 5
+  enableDrift: 0
   driftStiffness: 0.45
   normalStiffness: 2.2
-  driftBoost: 1.4
+  driftSteerReduction: 0.6
+  driftBoostForce: 500
+  minDriftSpeed: 8
   downforce: 800
   gripTransition: 6
   frontLeftCollider: {fileID: 1638168584}
@@ -5207,7 +5210,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2058534148148648925, guid: d84787863a48b884e8c303159510c801, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: -0.01
       objectReference: {fileID: 0}
     - target: {fileID: 2058534148148648925, guid: d84787863a48b884e8c303159510c801, type: 3}
       propertyPath: m_LocalPosition.y
@@ -5279,7 +5282,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4638088812894459032, guid: d84787863a48b884e8c303159510c801, type: 3}
       propertyPath: m_Size.z
-      value: 4.3
+      value: 4.1198587
+      objectReference: {fileID: 0}
+    - target: {fileID: 4638088812894459032, guid: d84787863a48b884e8c303159510c801, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4638088812894459032, guid: d84787863a48b884e8c303159510c801, type: 3}
+      propertyPath: m_Center.z
+      value: -0.03004229
       objectReference: {fileID: 0}
     - target: {fileID: 4714780975239931320, guid: d84787863a48b884e8c303159510c801, type: 3}
       propertyPath: m_Name
