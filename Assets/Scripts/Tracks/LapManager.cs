@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+﻿﻿using UnityEngine;
 using System.Collections.Generic;
 
 public class LapManager : MonoBehaviour
@@ -12,6 +12,9 @@ public class LapManager : MonoBehaviour
     [Header("Respawn")]
     public Transform[] checkpointRespawnPoints;
     public Transform finishRespawnPoint;
+
+    [Header("Guardado")]
+    public TimeSaver timeSaver;
 
     private bool raceStarted = false;
     private bool raceFinished = false;
@@ -27,6 +30,9 @@ public class LapManager : MonoBehaviour
     private Transform playerTransform;
     private Rigidbody playerRigidbody;
     private WheelCollider[] playerWheels;
+    
+    private string currentCarName = "";
+    private string currentMapName = "";
 
     void Awake()
     {
@@ -35,8 +41,6 @@ public class LapManager : MonoBehaviour
 
     void Start()
     {
-        // Busca por tag "Player" — lo tiene KartRoot y CarBody
-        // Nos quedamos con el que tenga Rigidbody, que es KartRoot
         GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
 
         foreach (GameObject go in players)
@@ -54,6 +58,9 @@ public class LapManager : MonoBehaviour
 
         if (playerRigidbody == null)
             Debug.LogError("LapManager: no encontré ningún Rigidbody en objetos con tag Player");
+
+        currentCarName = playerTransform != null ? playerTransform.name : "Coche Desconocido";
+        currentMapName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
 
         RaceUI.Instance?.UpdateUI(0, totalLaps, 0f, 0f, 0f, false);
     }
@@ -115,7 +122,7 @@ public class LapManager : MonoBehaviour
         if (currentLap > totalLaps)
         {
             raceFinished = true;
-            RaceUI.Instance?.ShowFinishScreen(lapTimes, bestLapTime, totalTime);
+            RaceUI.Instance?.ShowFinishScreen(lapTimes, bestLapTime, totalTime, currentCarName, currentMapName);
         }
     }
 
@@ -152,19 +159,15 @@ public class LapManager : MonoBehaviour
             return;
         }
 
-        // Desactiva WheelColliders antes de mover
         foreach (var w in playerWheels) w.enabled = false;
 
-        // Para el Rigidbody completamente
         playerRigidbody.linearVelocity = Vector3.zero;
         playerRigidbody.angularVelocity = Vector3.zero;
         playerRigidbody.isKinematic = true;
 
-        // Teleporta
         playerTransform.position = target.position;
         playerTransform.rotation = target.rotation;
 
-        // Reactiva
         playerRigidbody.isKinematic = false;
         foreach (var w in playerWheels) w.enabled = true;
 
