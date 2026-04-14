@@ -4835,7 +4835,7 @@ GameObject:
   - component: {fileID: 952700594}
   - component: {fileID: 952700593}
   m_Layer: 0
-  m_Name: KartRoot
+  m_Name: MuscleCar
   m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
