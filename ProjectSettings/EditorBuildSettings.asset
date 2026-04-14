@@ -9,7 +9,7 @@ EditorBuildSettings:
     path: Assets/Scenes/menu.unity
     guid: a1c628c9b8db7dd46ac58d142543bfb2
   - enabled: 1
-    path: Assets/Scenes/Trak1.unity
+    path: Assets/Scenes/Llanura Soleada.unity
     guid: 99c9720ab356a0642a771bea13969a05
   - enabled: 1
     path: Assets/Scenes/PersonalizarCoches.unity
