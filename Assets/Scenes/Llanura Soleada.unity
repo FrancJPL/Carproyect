@@ -4854,10 +4854,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CarController
   motorForce: 2500
-  maxSpeed: 30
+  maxSpeed: 35
   brakeForce: 5000
-  reverseForce: 800
-  maxSteerAngle: 25
+  handBrakeForce: 8000
+  reverseForce: 3000
+  maxSteerAngle: 20
   steerSpeed: 5
   enableDrift: 0
   driftStiffness: 0.45
