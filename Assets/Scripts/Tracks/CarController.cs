@@ -6,6 +6,7 @@ public class CarController : MonoBehaviour
     public float motorForce      = 2500f;
     public float maxSpeed        = 30f;
     public float brakeForce      = 5000f;
+    public float handBrakeForce  = 8000f;   // Freno de mano (Space)
     public float reverseForce    = 800f;
 
     [Header("Dirección")]
@@ -13,12 +14,12 @@ public class CarController : MonoBehaviour
     public float steerSpeed      = 5f;
 
     [Header("Drift (mejorado)")]
-    public bool enableDrift      = true;          // Activar/desactivar drift
-    public float driftStiffness  = 0.35f;         // Derrape (menos = más deslizamiento)
-    public float normalStiffness = 2.2f;          // Agarre normal
-    public float driftSteerReduction = 0.6f;      // Reducción de giro al driftear
-    public float driftBoostForce = 500f;          // Empuje extra al salir del drift
-    public float minDriftSpeed   = 8f;             // Velocidad mínima para driftear
+    public bool enableDrift      = true;
+    public float driftStiffness  = 0.35f;
+    public float normalStiffness = 2.2f;
+    public float driftSteerReduction = 0.6f;
+    public float driftBoostForce = 500f;
+    public float minDriftSpeed   = 8f;
 
     [Header("Sensación arcade")]
     public float downforce       = 800f;
@@ -39,7 +40,6 @@ public class CarController : MonoBehaviour
     [Header("Centro de masa")]
     public Transform centerOfMassTransform;
 
-    // Privados
     private Rigidbody rb;
     private float currentSteer;
     private float currentStiffness;
@@ -83,50 +83,62 @@ public class CarController : MonoBehaviour
     void HandleMotor()
     {
         float rawInput = Input.GetAxis("Vertical");
+        bool handBrake = Input.GetKey(KeyCode.Space); // Freno de mano
+
         float currentSpeed = rb.linearVelocity.magnitude;
         bool isMovingForward = Vector3.Dot(transform.forward, rb.linearVelocity) > 0;
         
         float torque = 0f;
         float brake = 0f;
         
-        // Caso 1: Quiere ir adelante (W)
-        if (rawInput > 0)
+        // PRIORIDAD: Si se pulsa Space, frenazo fuerte (sin importar el resto)
+        if (handBrake)
         {
-            if (!isMovingForward && currentSpeed > 0.5f)
-            {
-                // Va marcha atrás pero quiero adelante → frenar primero
-                brake = brakeForce * 0.8f;
-                torque = 0;
-            }
-            else
-            {
-                // Normal: acelerar adelante
-                torque = rawInput * motorForce;
-                brake = 0;
-            }
+            brake = handBrakeForce;
+            torque = 0;
         }
-        // Caso 2: Quiere frenar o ir atrás (S)
-        else if (rawInput < 0)
-        {
-            if (isMovingForward && currentSpeed > 1f)
-            {
-                // Va adelante y freno → frenar, NO ir atrás todavía
-                brake = brakeForce * Mathf.Clamp01(Mathf.Abs(rawInput));
-                torque = 0;
-            }
-            else
-            {
-                // Ya está parado o yendo atrás → ir marcha atrás
-                torque = rawInput * reverseForce;
-                brake = 0;
-            }
-        }
-        // Caso 3: Sin input (sin W ni S)
+        // Si no hay freno de mano, comportamiento normal
         else
         {
-            // Frenado suave al soltar acelerador
-            if (currentSpeed > 0.5f)
-                brake = brakeForce * 0.15f;
+            // Caso 1: Quiere ir adelante (W)
+            if (rawInput > 0)
+            {
+                if (!isMovingForward && currentSpeed > 0.5f)
+                {
+                    // Va marcha atrás pero quiero adelante → frenar primero
+                    brake = brakeForce * 0.8f;
+                    torque = 0;
+                }
+                else
+                {
+                    // Normal: acelerar adelante
+                    torque = rawInput * motorForce;
+                    brake = 0;
+                }
+            }
+            // Caso 2: Quiere frenar o ir atrás (S)
+            else if (rawInput < 0)
+            {
+                if (isMovingForward && currentSpeed > 1f)
+                {
+                    // Va adelante y freno → frenar, NO ir atrás todavía
+                    brake = brakeForce * Mathf.Clamp01(Mathf.Abs(rawInput));
+                    torque = 0;
+                }
+                else
+                {
+                    // Ya está parado o yendo atrás → ir marcha atrás
+                    torque = rawInput * reverseForce;
+                    brake = 0;
+                }
+            }
+            // Caso 3: Sin input (sin W ni S)
+            else
+            {
+                // Frenado suave al soltar acelerador
+                if (currentSpeed > 0.5f)
+                    brake = brakeForce * 0.15f;
+            }
         }
         
         // Aplicar torque (solo a ruedas traseras para tracción trasera)
@@ -145,7 +157,6 @@ public class CarController : MonoBehaviour
         float targetSteer = maxSteerAngle * Input.GetAxis("Horizontal");
         float speedFactor = Mathf.Clamp01(rb.linearVelocity.magnitude / maxSpeed);
         
-        // Reducción de giro en drift
         float steerMultiplier = (isDrifting && enableDrift) ? driftSteerReduction : 1f;
         targetSteer *= Mathf.Lerp(1f, 0.5f, speedFactor) * steerMultiplier;
 
@@ -158,7 +169,6 @@ public class CarController : MonoBehaviour
     {
         if (!enableDrift)
         {
-            // Modo sin drift - agarre normal siempre
             if (currentStiffness != normalStiffness)
             {
                 currentStiffness = Mathf.Lerp(currentStiffness, normalStiffness, Time.fixedDeltaTime * gripTransition);
@@ -172,19 +182,15 @@ public class CarController : MonoBehaviour
         bool isTurning = Mathf.Abs(Input.GetAxis("Horizontal")) > 0.2f;
         float speed = rb.linearVelocity.magnitude;
         
-        // Detectar drift
         bool shouldDrift = driftInput && isTurning && speed > minDriftSpeed;
         
-        // Activar/desactivar drift
         if (shouldDrift && !isDrifting)
         {
-            // Iniciar drift
             isDrifting = true;
             driftTimer = 0f;
         }
         else if (!shouldDrift && isDrifting)
         {
-            // Terminar drift - dar boost
             EndDrift();
         }
         
@@ -194,7 +200,6 @@ public class CarController : MonoBehaviour
             float targetStiffness = driftStiffness;
             currentStiffness = Mathf.Lerp(currentStiffness, targetStiffness, Time.fixedDeltaTime * gripTransition);
             
-            // Empuje lateral durante el drift (más control)
             if (shouldDrift)
             {
                 Vector3 driftForce = transform.right * Input.GetAxis("Horizontal") * 100f * (speed / maxSpeed);
@@ -203,11 +208,9 @@ public class CarController : MonoBehaviour
         }
         else
         {
-            // Volver a agarre normal
             currentStiffness = Mathf.Lerp(currentStiffness, normalStiffness, Time.fixedDeltaTime * gripTransition);
         }
         
-        // Aplicar fricción
         SetSidewaysFriction(frontLeftCollider, currentStiffness);
         SetSidewaysFriction(frontRightCollider, currentStiffness);
         SetSidewaysFriction(rearLeftCollider, currentStiffness * 0.8f);
@@ -216,13 +219,10 @@ public class CarController : MonoBehaviour
     
     void EndDrift()
     {
-        if (driftTimer > 0.3f) // Solo dar boost si drift duró suficiente
+        if (driftTimer > 0.3f)
         {
-            // Mini turbo al salir del drift
             Vector3 boostDirection = transform.forward;
             rb.AddForce(boostDirection * driftBoostForce, ForceMode.Impulse);
-            
-            // Efecto visual opcional (puedes agregar partículas aquí)
             Debug.Log("Drift boost! Duration: " + driftTimer.ToString("F2"));
         }
         isDrifting = false;
@@ -263,9 +263,6 @@ public class CarController : MonoBehaviour
         mesh.SetPositionAndRotation(pos, rot);
     }
     
-    // Método público para consultar si está drifteando
     public bool IsDrifting() => isDrifting;
-    
-    // Método público para obtener fuerza de drift (para efectos visuales)
     public float GetDriftIntensity() => isDrifting ? Mathf.Clamp01(driftTimer / 2f) : 0f;
 }
