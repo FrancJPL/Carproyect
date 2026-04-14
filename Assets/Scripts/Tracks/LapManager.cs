@@ -5,6 +5,9 @@ public class LapManager : MonoBehaviour
 {
     public static LapManager Instance { get; private set; }
 
+    // Evento para notificar cuando la carrera termina
+    public System.Action OnRaceFinished;
+
     [Header("Configuración")]
     public int totalLaps = 3;
     public int totalCheckpoints = 4;
@@ -122,6 +125,10 @@ public class LapManager : MonoBehaviour
         if (currentLap > totalLaps)
         {
             raceFinished = true;
+            
+            // Disparar el evento para deshabilitar controles del coche
+            OnRaceFinished?.Invoke();
+            
             RaceUI.Instance?.ShowFinishScreen(lapTimes, bestLapTime, totalTime, currentCarName, currentMapName);
         }
     }
@@ -193,4 +200,6 @@ public class LapManager : MonoBehaviour
         int ms = (int)((t * 1000) % 1000);
         return $"{min:00}:{sec:00}.{ms:000}";
     }
+    
+    public bool IsRaceFinished() => raceFinished;
 }

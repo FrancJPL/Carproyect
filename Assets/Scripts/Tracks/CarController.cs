@@ -46,6 +46,7 @@ public class CarController : MonoBehaviour
     private bool isDrifting;
     private float driftTimer;
     private Vector3 lastVelocity;
+    private bool controlsEnabled = true;  // Control de habilitación de controles
 
     void Awake()
     {
@@ -62,8 +63,36 @@ public class CarController : MonoBehaviour
         currentStiffness = normalStiffness;
     }
 
+    void Start()
+    {
+        // Buscar LapManager y suscribirse al evento de fin de carrera
+        LapManager lapManager = FindObjectOfType<LapManager>();
+        if (lapManager != null)
+        {
+            lapManager.OnRaceFinished += DisableControls;
+        }
+    }
+
+    void OnDestroy()
+    {
+        // Limpiar evento al destruir
+        LapManager lapManager = FindObjectOfType<LapManager>();
+        if (lapManager != null)
+        {
+            lapManager.OnRaceFinished -= DisableControls;
+        }
+    }
+
     void FixedUpdate()
     {
+        if (!controlsEnabled)
+        {
+            // Si los controles están deshabilitados, solo aplicar freno fuerte
+            DisableCarMovement();
+            UpdateWheelMeshes();
+            return;
+        }
+
         ClampSpeed();
         HandleMotor();
         HandleSteering();
@@ -72,6 +101,46 @@ public class CarController : MonoBehaviour
         UpdateWheelMeshes();
         lastVelocity = rb.linearVelocity;
     }
+
+    void DisableCarMovement()
+    {
+        // Aplicar freno máximo para detener el coche
+        float brake = handBrakeForce;
+        
+        frontLeftCollider.brakeTorque = brake;
+        frontRightCollider.brakeTorque = brake;
+        rearLeftCollider.brakeTorque = brake;
+        rearRightCollider.brakeTorque = brake;
+        
+        // Cero torque en motores
+        rearLeftCollider.motorTorque = 0;
+        rearRightCollider.motorTorque = 0;
+        
+        // Cero steering
+        frontLeftCollider.steerAngle = 0;
+        frontRightCollider.steerAngle = 0;
+        
+        // Reducir velocidad gradualmente
+        if (rb.linearVelocity.magnitude > 0.5f)
+        {
+            rb.linearVelocity = rb.linearVelocity * 0.98f;
+            rb.angularVelocity = rb.angularVelocity * 0.98f;
+        }
+    }
+
+    public void DisableControls()
+    {
+        controlsEnabled = false;
+        Debug.Log("Controles del coche deshabilitados - Carrera terminada");
+    }
+
+    public void EnableControls()
+    {
+        controlsEnabled = true;
+        Debug.Log("Controles del coche habilitados");
+    }
+
+    public bool AreControlsEnabled() => controlsEnabled;
 
     void ClampSpeed()
     {
