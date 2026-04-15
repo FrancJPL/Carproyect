@@ -15,6 +15,9 @@ public class RaceUI : MonoBehaviour
     public TextMeshProUGUI totalTimeText;
     public GameObject waitingText;
 
+    [Header("Mensaje dirección contraria")]
+    public TextMeshProUGUI wrongWayText;
+
     [Header("Pantalla final")]
     public GameObject finishPanel;
     public TextMeshProUGUI finishLapTimesText;
@@ -22,6 +25,7 @@ public class RaceUI : MonoBehaviour
     public TextMeshProUGUI finishTotalTimeText;
     public Button restartButton;
     public Button saveTimeButton;
+    public Button mainMenuButton;
 
     [Header("Guardado")]
     public TimeSaver timeSaver;
@@ -39,11 +43,22 @@ public class RaceUI : MonoBehaviour
     void Start()
     {
         finishPanel.SetActive(false);
-        if (waitingText != null) waitingText.SetActive(true);
-        restartButton.onClick.AddListener(RestartRace);
+        
+        if (waitingText != null)
+            waitingText.SetActive(true);
+        
+        if (restartButton != null)
+            restartButton.onClick.AddListener(RestartRace);
+        
+        if (mainMenuButton != null)
+            mainMenuButton.onClick.AddListener(GoToMainMenu);
         
         if (saveTimeButton != null)
             saveTimeButton.onClick.AddListener(OnSaveTimeButtonPressed);
+        
+        // Ocultar mensaje de dirección contraria al inicio
+        if (wrongWayText != null)
+            wrongWayText.gameObject.SetActive(false);
     }
 
     public void UpdateUI(int lap, int totalLaps, float lapTime, float bestLap, float total, bool raceActive)
@@ -53,12 +68,42 @@ public class RaceUI : MonoBehaviour
 
         if (!raceActive) return;
 
-        lapText.text = $"Vuelta  {lap} / {totalLaps}";
-        currentLapTimeText.text = $"Vuelta actual  {LapManager.FormatTime(lapTime)}";
-        bestLapTimeText.text = bestLap > 0
-            ? $"Mejor vuelta  {LapManager.FormatTime(bestLap)}"
-            : "Mejor vuelta  --:--.---";
-        totalTimeText.text = $"Tiempo total  {LapManager.FormatTime(total)}";
+        if (lapText != null)
+            lapText.text = $"Vuelta  {lap} / {totalLaps}";
+        
+        if (currentLapTimeText != null)
+            currentLapTimeText.text = $"Vuelta actual  {LapManager.FormatTime(lapTime)}";
+        
+        if (bestLapTimeText != null)
+            bestLapTimeText.text = bestLap > 0
+                ? $"Mejor vuelta  {LapManager.FormatTime(bestLap)}"
+                : "Mejor vuelta  --:--.---";
+        
+        if (totalTimeText != null)
+            totalTimeText.text = $"Tiempo total  {LapManager.FormatTime(total)}";
+    }
+
+    public void ShowWrongWayMessage(bool show)
+    {
+        if (wrongWayText != null)
+        {
+            wrongWayText.gameObject.SetActive(show);
+            
+            if (show)
+            {
+                wrongWayText.text = " ¡DIRECCIÓN CONTRARIA! ";
+                wrongWayText.color = Color.red;
+                Debug.Log("Mostrando mensaje de dirección contraria");
+            }
+            else
+            {
+                Debug.Log("Ocultando mensaje de dirección contraria");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("WrongWayText no está asignado en el Inspector");
+        }
     }
 
     public void ShowFinishScreen(List<float> lapTimes, float bestLap, float total, string carName, string mapName)
@@ -68,15 +113,25 @@ public class RaceUI : MonoBehaviour
         currentCarName = carName;
         currentMapName = mapName;
         
-        finishPanel.SetActive(true);
+        if (finishPanel != null)
+            finishPanel.SetActive(true);
+        
+        // Mostrar cursor al terminar la carrera
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
 
         string lapLines = "";
         for (int i = 0; i < lapTimes.Count; i++)
             lapLines += $"Vuelta {i + 1}:  {LapManager.FormatTime(lapTimes[i])}\n";
 
-        finishLapTimesText.text = lapLines;
-        finishBestLapText.text = $"Mejor vuelta:  {LapManager.FormatTime(bestLap)}";
-        finishTotalTimeText.text = $"Tiempo total:  {LapManager.FormatTime(total)}";
+        if (finishLapTimesText != null)
+            finishLapTimesText.text = lapLines;
+        
+        if (finishBestLapText != null)
+            finishBestLapText.text = $"Mejor vuelta:  {LapManager.FormatTime(bestLap)}";
+        
+        if (finishTotalTimeText != null)
+            finishTotalTimeText.text = $"Tiempo total:  {LapManager.FormatTime(total)}";
         
         if (saveTimeButton != null)
             saveTimeButton.gameObject.SetActive(true);
@@ -100,6 +155,15 @@ public class RaceUI : MonoBehaviour
 
     void RestartRace()
     {
+        Time.timeScale = 1f;
+        AudioListener.pause = false;
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+    
+    void GoToMainMenu()
+    {
+        Time.timeScale = 1f;
+        AudioListener.pause = false;
+        SceneManager.LoadScene("menu");
     }
 }
