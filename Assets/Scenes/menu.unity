@@ -4015,7 +4015,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1836735145}
   - component: {fileID: 1836735144}
-  - component: {fileID: 1836735143}
   m_Layer: 0
   m_Name: musica
   m_TagString: Untagged
@@ -4023,21 +4022,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1836735143
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1836735142}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 834335bba8ecbaf4cab1e6c9e2ca4c35, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  musicaMenu: {fileID: 8300000, guid: 8a22c30f0ca4f034cb61fb1e31101ffa, type: 3}
-  musicaPersonalizar: {fileID: 8300000, guid: 2e59bda4ffbd248418808fec7e204f3e, type: 3}
-  musicaPista: {fileID: 0}
 --- !u!82 &1836735144
 AudioSource:
   m_ObjectHideFlags: 0
