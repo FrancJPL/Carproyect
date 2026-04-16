@@ -1,4 +1,4 @@
-﻿﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
 
 public class LapManager : MonoBehaviour
@@ -20,19 +20,17 @@ public class LapManager : MonoBehaviour
     public TimeSaver timeSaver;
 
     [Header("Detección de dirección")]
-    public float wrongWayCheckDistance = 10f;  // Distancia para detectar si vas en dirección contraria
-    public LayerMask trackLayer;               // Layer de la pista para raycast
+    public float wrongWayCheckDistance = 10f;
+    public LayerMask trackLayer;
 
     private bool raceStarted = false;
     private bool raceFinished = false;
     private int currentLap = 0;
     private int nextCheckpointExpected = 0;
     private int lastCheckpointReached = -1;
-    
-    // NUEVO: Array para trackear qué checkpoints se han completado en la vuelta actual
+
     private bool[] checkpointsCompletedThisLap;
-    
-    // NUEVO: Para detección de dirección contraria
+
     private bool isGoingWrongWay = false;
     private float wrongWayTimer = 0f;
 
@@ -44,15 +42,13 @@ public class LapManager : MonoBehaviour
     private Transform playerTransform;
     private Rigidbody playerRigidbody;
     private WheelCollider[] playerWheels;
-    
+
     private string currentCarName = "";
     private string currentMapName = "";
 
     void Awake()
     {
         Instance = this;
-        
-        // Inicializar el array de checkpoints
         checkpointsCompletedThisLap = new bool[totalCheckpoints];
     }
 
@@ -80,7 +76,6 @@ public class LapManager : MonoBehaviour
         currentMapName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
 
         RaceUI.Instance?.UpdateUI(0, totalLaps, 0f, 0f, 0f, false);
-        
         ResetCheckpointsProgress();
     }
 
@@ -101,47 +96,66 @@ public class LapManager : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.R))
             Respawn();
-            
-        // NUEVO: Detectar si va en dirección contraria
+
         CheckWrongWay();
     }
-    
-    // NUEVO: Método para detectar si el jugador va en dirección contraria
+
+    void ResetCheckpointsProgress()
+    {
+        for (int i = 0; i < totalCheckpoints; i++)
+        {
+            checkpointsCompletedThisLap[i] = false;
+        }
+
+        RaceUI.Instance?.UpdateCheckpointProgress(0, totalCheckpoints);
+    }
+
     void CheckWrongWay()
     {
-        if (playerTransform == null || !raceStarted) return;
-        
-        // Hacer un raycast hacia adelante para ver la dirección de la pista
-        RaycastHit hit;
-        Vector3 forward = playerTransform.forward;
-        
-        if (Physics.Raycast(playerTransform.position + Vector3.up * 0.5f, forward, out hit, wrongWayCheckDistance, trackLayer))
+        if (playerTransform == null || playerRigidbody == null || !raceStarted || raceFinished) return;
+
+        float speed = playerRigidbody.linearVelocity.magnitude;
+        if (speed < 2f)
         {
-            // Obtener la dirección "correcta" del track (puedes usar el vector forward del checkpoint más cercano)
-            // Por ahora, usamos una simplificación: si la velocidad es negativa respecto al forward del coche
-            float speedDot = Vector3.Dot(playerRigidbody.linearVelocity.normalized, forward);
-            
-            bool newWrongWay = speedDot < -0.3f; // Si va hacia atrás (velocidad negativa respecto al forward)
-            
-            if (newWrongWay != isGoingWrongWay)
+            if (isGoingWrongWay)
             {
-                isGoingWrongWay = newWrongWay;
-                if (isGoingWrongWay)
-                {
-                    wrongWayTimer = 0f;
-                    Debug.Log("<color=red>⚠️ DIRECCIÓN CONTRARIA ⚠️</color>");
-                    
-                    // Opcional: mostrar mensaje en UI
-                    RaceUI.Instance?.ShowWrongWayMessage(true);
-                }
-                else
-                {
-                    RaceUI.Instance?.ShowWrongWayMessage(false);
-                }
+                isGoingWrongWay = false;
+                wrongWayTimer = 0f;
+                RaceUI.Instance?.ShowWrongWayMessage(false);
+            }
+            return;
+        }
+
+        if (trackLayer.value != 0)
+        {
+            Physics.Raycast(
+                playerTransform.position + Vector3.up * 0.5f,
+                playerTransform.forward,
+                out _,
+                wrongWayCheckDistance,
+                trackLayer
+            );
+        }
+
+        float forwardDot = Vector3.Dot(playerRigidbody.linearVelocity.normalized, playerTransform.forward);
+        bool newWrongWay = forwardDot < -0.3f;
+
+        if (newWrongWay != isGoingWrongWay)
+        {
+            isGoingWrongWay = newWrongWay;
+
+            if (isGoingWrongWay)
+            {
+                wrongWayTimer = 0f;
+                Debug.Log("<color=red>⚠️ DIRECCIÓN CONTRARIA ⚠️</color>");
+                RaceUI.Instance?.ShowWrongWayMessage(true);
+            }
+            else
+            {
+                RaceUI.Instance?.ShowWrongWayMessage(false);
             }
         }
-        
-        // Si va en dirección contraria por más de 2 segundos, resetear progreso de checkpoints
+
         if (isGoingWrongWay)
         {
             wrongWayTimer += Time.deltaTime;
@@ -153,22 +167,13 @@ public class LapManager : MonoBehaviour
             }
         }
     }
-    
-    // NUEVO: Resetear progreso de la vuelta actual (sin perder la vuelta)
+
     void ResetLapProgress()
     {
         nextCheckpointExpected = 0;
         lastCheckpointReached = -1;
         ResetCheckpointsProgress();
         RaceUI.Instance?.ShowMessage("¡Has perdido el progreso de la vuelta!", 2f);
-    }
-    
-    void ResetCheckpointsProgress()
-    {
-        for (int i = 0; i < totalCheckpoints; i++)
-        {
-            checkpointsCompletedThisLap[i] = false;
-        }
     }
 
     public void OnFinishLineCrossed()
@@ -181,35 +186,29 @@ public class LapManager : MonoBehaviour
             return;
         }
 
-        // NUEVO: Validación más estricta para completar vuelta
         if (IsValidLapCompletion())
         {
             CompleteLap();
         }
         else
         {
-            // Mostrar qué checkpoints faltan
             string missing = GetMissingCheckpointsString();
             Debug.Log($"<color=orange>❌ Vuelta inválida! Te faltan los checkpoints: {missing}</color>");
             RaceUI.Instance?.ShowMessage($"¡Completa todos los checkpoints primero! Faltan: {missing}", 2f);
         }
     }
-    
-    // NUEVO: Verificar si todos los checkpoints han sido completados en orden
+
     bool IsValidLapCompletion()
     {
-        // Debe haber completado todos los checkpoints
         for (int i = 0; i < totalCheckpoints; i++)
         {
             if (!checkpointsCompletedThisLap[i])
                 return false;
         }
-        
-        // Además, el siguiente esperado debe ser 0 (volver a la meta después del último checkpoint)
+
         return nextCheckpointExpected == 0;
     }
-    
-    // NUEVO: Obtener string de checkpoints faltantes (para debug)
+
     string GetMissingCheckpointsString()
     {
         List<int> missing = new List<int>();
@@ -218,9 +217,10 @@ public class LapManager : MonoBehaviour
             if (!checkpointsCompletedThisLap[i])
                 missing.Add(i);
         }
+
         return missing.Count > 0 ? string.Join(", ", missing) : "ninguno";
     }
-    
+
     void StartRace()
     {
         raceStarted = true;
@@ -229,10 +229,13 @@ public class LapManager : MonoBehaviour
         lastCheckpointReached = -1;
         currentLapTime = 0f;
         totalTime = 0f;
+        isGoingWrongWay = false;
+        wrongWayTimer = 0f;
         ResetCheckpointsProgress();
+
         Debug.Log("<color=green>🏁 Carrera iniciada — Vuelta 1 🏁</color>");
     }
-    
+
     void CompleteLap()
     {
         float finishedLapTime = currentLapTime;
@@ -243,11 +246,10 @@ public class LapManager : MonoBehaviour
 
         currentLap++;
         currentLapTime = 0f;
-        
-        // Resetear progreso para la nueva vuelta
-        ResetCheckpointsProgress();
+
         lastCheckpointReached = -1;
         nextCheckpointExpected = 0;
+        ResetCheckpointsProgress();
 
         Debug.Log($"<color=green>✅ Vuelta {currentLap - 1} completada en {FormatTime(finishedLapTime)} ✅</color>");
 
@@ -256,26 +258,13 @@ public class LapManager : MonoBehaviour
             FinishRace();
         }
     }
-    
-    void FinishRace()
-    {
-        raceFinished = true;
-        
-        // Disparar el evento para deshabilitar controles del coche
-        OnRaceFinished?.Invoke();
-        
-        RaceUI.Instance?.ShowFinishScreen(lapTimes, bestLapTime, totalTime, currentCarName, currentMapName);
-        Debug.Log("<color=cyan>🏆 ¡CARRERA TERMINADA! 🏆</color>");
-    }
 
     public void OnCheckpointCrossed(int index)
     {
         if (!raceStarted || raceFinished) return;
-        
-        // Validar que el checkpoint sea el esperado
+
         if (index != nextCheckpointExpected)
         {
-            // Si no es el esperado, puede ser que vaya en dirección contraria
             if (isGoingWrongWay)
             {
                 Debug.Log($"<color=red>Checkpoint {index} ignorado - Vas en dirección contraria</color>");
@@ -288,14 +277,10 @@ public class LapManager : MonoBehaviour
             return;
         }
 
-        // Marcar este checkpoint como completado
         checkpointsCompletedThisLap[index] = true;
         lastCheckpointReached = index;
-        
-        // Avanzar al siguiente checkpoint esperado
+
         nextCheckpointExpected = index + 1;
-        
-        // Si llegamos al final, el siguiente debe ser 0 (meta)
         if (nextCheckpointExpected >= totalCheckpoints)
         {
             nextCheckpointExpected = 0;
@@ -306,13 +291,11 @@ public class LapManager : MonoBehaviour
         {
             Debug.Log($"<color=green>✅ Checkpoint {index} ✓ — Siguiente: {nextCheckpointExpected}</color>");
         }
-        
-        // Mostrar progreso en UI (opcional)
+
         int completedCount = GetCompletedCheckpointsCount();
         RaceUI.Instance?.UpdateCheckpointProgress(completedCount, totalCheckpoints);
     }
-    
-    // NUEVO: Obtener cuántos checkpoints se han completado en la vuelta actual
+
     int GetCompletedCheckpointsCount()
     {
         int count = 0;
@@ -366,6 +349,22 @@ public class LapManager : MonoBehaviour
         return finishRespawnPoint;
     }
 
+    void FinishRace()
+    {
+        raceFinished = true;
+        isGoingWrongWay = false;
+        RaceUI.Instance?.ShowWrongWayMessage(false);
+
+        OnRaceFinished?.Invoke();
+
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
+        Time.timeScale = 1f;
+
+        RaceUI.Instance?.ShowFinishScreen(lapTimes, bestLapTime, totalTime, currentCarName, currentMapName);
+        Debug.Log("<color=cyan>🏆 ¡CARRERA TERMINADA! 🏆</color>");
+    }
+
     public static string FormatTime(float t)
     {
         int min = (int)(t / 60);
@@ -373,7 +372,7 @@ public class LapManager : MonoBehaviour
         int ms = (int)((t * 1000) % 1000);
         return $"{min:00}:{sec:00}.{ms:000}";
     }
-    
+
     public bool IsRaceFinished() => raceFinished;
     public bool IsRaceStarted() => raceStarted;
     public int GetCurrentLap() => currentLap;
