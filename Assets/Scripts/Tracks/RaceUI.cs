@@ -21,6 +21,10 @@ public class RaceUI : MonoBehaviour
     public TextMeshProUGUI checkpointProgressText;
     public TextMeshProUGUI wrongWayText;
 
+    [Header("Boost UI")]
+    public Image boostBarFill;
+    public TextMeshProUGUI boostPercentageText;
+
     [Header("Pantalla final")]
     public GameObject finishPanel;
     public TextMeshProUGUI finishLapTimesText;
@@ -93,6 +97,20 @@ public class RaceUI : MonoBehaviour
             totalTimeText.text = $"Tiempo total {LapManager.FormatTime(total)}";
     }
 
+    public void UpdateBoostUI(float fillAmount, float currentBoost, float maxBoost)
+    {
+        if (boostBarFill != null)
+        {
+            boostBarFill.fillAmount = fillAmount;
+        }
+        
+        if (boostPercentageText != null)
+        {
+            int percentage = Mathf.RoundToInt(fillAmount * 100f);
+            boostPercentageText.text = $"{percentage}%";
+        }
+    }
+
     public void ShowWrongWayMessage(float duration = 5f)
     {
         if (wrongWayText == null) return;
@@ -136,6 +154,13 @@ public class RaceUI : MonoBehaviour
     {
         if (checkpointProgressText == null) return;
         checkpointProgressText.text = $"Checkpoints: {completed}/{total}";
+        
+        if (completed == total)
+            checkpointProgressText.color = Color.green;
+        else if (completed > total / 2)
+            checkpointProgressText.color = Color.yellow;
+        else
+            checkpointProgressText.color = Color.white;
     }
 
     public void ShowFinishScreen(List<float> lapTimes, float bestLap, float total, string carName, string mapName)

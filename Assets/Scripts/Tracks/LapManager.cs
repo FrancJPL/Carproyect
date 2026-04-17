@@ -6,6 +6,7 @@ public class LapManager : MonoBehaviour
     public static LapManager Instance { get; private set; }
 
     public System.Action OnRaceFinished;
+    public System.Action OnLapCompleted;  // Nuevo evento para cuando se completa una vuelta
 
     [Header("Configuración")]
     public int totalLaps = 3;
@@ -143,6 +144,9 @@ public class LapManager : MonoBehaviour
         ResetCheckpointsProgress();
 
         Debug.Log($"Vuelta completada en {FormatTime(finishedLapTime)}");
+        
+        // Disparar evento de vuelta completada
+        OnLapCompleted?.Invoke();
 
         if (currentLap > totalLaps)
         {
@@ -156,7 +160,6 @@ public class LapManager : MonoBehaviour
         
         if (index != nextCheckpointExpected)
         {
-            // Mostrar mensaje de direccion contraria por 5 segundos
             RaceUI.Instance?.ShowWrongWayMessage(5f);
             Debug.Log($"Checkpoint incorrecto: tomo {index}, esperaba {nextCheckpointExpected}");
             return;
@@ -171,7 +174,6 @@ public class LapManager : MonoBehaviour
 
         Debug.Log($"Checkpoint {index} correcto - siguiente: {nextCheckpointExpected}");
         
-        // Actualizar UI de progreso
         int completedCount = 0;
         for (int i = 0; i < totalCheckpoints; i++)
         {

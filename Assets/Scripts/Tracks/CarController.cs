@@ -6,7 +6,7 @@ public class CarController : MonoBehaviour
     public float motorForce      = 2500f;
     public float maxSpeed        = 30f;
     public float brakeForce      = 5000f;
-    public float handBrakeForce  = 8000f;   // Freno de mano (Space)
+    public float handBrakeForce  = 8000f;
     public float reverseForce    = 800f;
 
     [Header("Dirección")]
@@ -46,7 +46,8 @@ public class CarController : MonoBehaviour
     private bool isDrifting;
     private float driftTimer;
     private Vector3 lastVelocity;
-    private bool controlsEnabled = true;  // Control de habilitación de controles
+    private bool controlsEnabled = true;
+    private BoostSystem boostSystem;
 
     void Awake()
     {
@@ -61,11 +62,11 @@ public class CarController : MonoBehaviour
             rb.centerOfMass = new Vector3(0f, -0.55f, 0.1f);
 
         currentStiffness = normalStiffness;
+        boostSystem = GetComponent<BoostSystem>();
     }
 
     void Start()
     {
-        // Buscar LapManager y suscribirse al evento de fin de carrera
         LapManager lapManager = FindObjectOfType<LapManager>();
         if (lapManager != null)
         {
@@ -75,7 +76,6 @@ public class CarController : MonoBehaviour
 
     void OnDestroy()
     {
-        // Limpiar evento al destruir
         LapManager lapManager = FindObjectOfType<LapManager>();
         if (lapManager != null)
         {
@@ -87,7 +87,6 @@ public class CarController : MonoBehaviour
     {
         if (!controlsEnabled)
         {
-            // Si los controles están deshabilitados, solo aplicar freno fuerte
             DisableCarMovement();
             UpdateWheelMeshes();
             return;
@@ -104,7 +103,6 @@ public class CarController : MonoBehaviour
 
     void DisableCarMovement()
     {
-        // Aplicar freno máximo para detener el coche
         float brake = handBrakeForce;
         
         frontLeftCollider.brakeTorque = brake;
@@ -112,15 +110,12 @@ public class CarController : MonoBehaviour
         rearLeftCollider.brakeTorque = brake;
         rearRightCollider.brakeTorque = brake;
         
-        // Cero torque en motores
         rearLeftCollider.motorTorque = 0;
         rearRightCollider.motorTorque = 0;
         
-        // Cero steering
         frontLeftCollider.steerAngle = 0;
         frontRightCollider.steerAngle = 0;
         
-        // Reducir velocidad gradualmente
         if (rb.linearVelocity.magnitude > 0.5f)
         {
             rb.linearVelocity = rb.linearVelocity * 0.98f;
@@ -152,7 +147,7 @@ public class CarController : MonoBehaviour
     void HandleMotor()
     {
         float rawInput = Input.GetAxis("Vertical");
-        bool handBrake = Input.GetKey(KeyCode.Space); // Freno de mano
+        bool handBrake = Input.GetKey(KeyCode.Space);
 
         float currentSpeed = rb.linearVelocity.magnitude;
         bool isMovingForward = Vector3.Dot(transform.forward, rb.linearVelocity) > 0;
@@ -160,61 +155,49 @@ public class CarController : MonoBehaviour
         float torque = 0f;
         float brake = 0f;
         
-        // PRIORIDAD: Si se pulsa Space, frenazo fuerte (sin importar el resto)
         if (handBrake)
         {
             brake = handBrakeForce;
             torque = 0;
         }
-        // Si no hay freno de mano, comportamiento normal
         else
         {
-            // Caso 1: Quiere ir adelante (W)
             if (rawInput > 0)
             {
                 if (!isMovingForward && currentSpeed > 0.5f)
                 {
-                    // Va marcha atrás pero quiero adelante → frenar primero
                     brake = brakeForce * 0.8f;
                     torque = 0;
                 }
                 else
                 {
-                    // Normal: acelerar adelante
                     torque = rawInput * motorForce;
                     brake = 0;
                 }
             }
-            // Caso 2: Quiere frenar o ir atrás (S)
             else if (rawInput < 0)
             {
                 if (isMovingForward && currentSpeed > 1f)
                 {
-                    // Va adelante y freno → frenar, NO ir atrás todavía
                     brake = brakeForce * Mathf.Clamp01(Mathf.Abs(rawInput));
                     torque = 0;
                 }
                 else
                 {
-                    // Ya está parado o yendo atrás → ir marcha atrás
                     torque = rawInput * reverseForce;
                     brake = 0;
                 }
             }
-            // Caso 3: Sin input (sin W ni S)
             else
             {
-                // Frenado suave al soltar acelerador
                 if (currentSpeed > 0.5f)
                     brake = brakeForce * 0.15f;
             }
         }
         
-        // Aplicar torque (solo a ruedas traseras para tracción trasera)
         rearLeftCollider.motorTorque = torque;
         rearRightCollider.motorTorque = torque;
         
-        // Aplicar freno (a todas las ruedas)
         frontLeftCollider.brakeTorque = brake;
         frontRightCollider.brakeTorque = brake;
         rearLeftCollider.brakeTorque = brake;
@@ -247,7 +230,8 @@ public class CarController : MonoBehaviour
             return;
         }
 
-        bool driftInput = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.X);
+        // Drift ahora con X o Control (Shift es para boost)
+        bool driftInput = Input.GetKey(KeyCode.X) || Input.GetKey(KeyCode.LeftControl);
         bool isTurning = Mathf.Abs(Input.GetAxis("Horizontal")) > 0.2f;
         float speed = rb.linearVelocity.magnitude;
         
