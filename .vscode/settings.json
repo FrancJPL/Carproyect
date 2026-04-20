@@ -67,5 +67,5 @@
         "*.sln": "*.csproj",
         "*.slnx": "*.csproj"
     },
-    "dotnet.defaultSolution": "Carproyect.slnx"
+    "dotnet.defaultSolution": "Coches Pochos.slnx"
 }

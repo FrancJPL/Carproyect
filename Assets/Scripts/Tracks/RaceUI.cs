@@ -21,6 +21,10 @@ public class RaceUI : MonoBehaviour
     public TextMeshProUGUI checkpointProgressText;
     public TextMeshProUGUI wrongWayText;
 
+    [Header("Boost UI")]
+    public Image boostBarFill;
+    public TextMeshProUGUI boostPercentageText;
+
     [Header("Pantalla final")]
     public GameObject finishPanel;
     public TextMeshProUGUI finishLapTimesText;
@@ -37,7 +41,7 @@ public class RaceUI : MonoBehaviour
     private float currentTotalTime;
     private string currentCarName;
     private string currentMapName;
-    private Coroutine messageCoroutine;
+    private Coroutine wrongWayCoroutine;
 
     void Awake()
     {
@@ -79,42 +83,64 @@ public class RaceUI : MonoBehaviour
         if (!raceActive) return;
 
         if (lapText != null)
-            lapText.text = $"Vuelta  {lap} / {totalLaps}";
+            lapText.text = $"Vuelta {lap} / {totalLaps}";
 
         if (currentLapTimeText != null)
-            currentLapTimeText.text = $"Vuelta actual  {LapManager.FormatTime(lapTime)}";
+            currentLapTimeText.text = $"Vuelta actual {LapManager.FormatTime(lapTime)}";
 
         if (bestLapTimeText != null)
             bestLapTimeText.text = bestLap > 0
-                ? $"Mejor vuelta  {LapManager.FormatTime(bestLap)}"
-                : "Mejor vuelta  --:--.---";
+                ? $"Mejor vuelta {LapManager.FormatTime(bestLap)}"
+                : "Mejor vuelta --:--.---";
 
         if (totalTimeText != null)
-            totalTimeText.text = $"Tiempo total  {LapManager.FormatTime(total)}";
+            totalTimeText.text = $"Tiempo total {LapManager.FormatTime(total)}";
     }
 
-    public void ShowWrongWayMessage(bool show)
+    public void UpdateBoostUI(float fillAmount, float currentBoost, float maxBoost)
+    {
+        if (boostBarFill != null)
+        {
+            boostBarFill.fillAmount = fillAmount;
+        }
+        
+        if (boostPercentageText != null)
+        {
+            int percentage = Mathf.RoundToInt(fillAmount * 100f);
+            boostPercentageText.text = $"{percentage}%";
+        }
+    }
+
+    public void ShowWrongWayMessage(float duration = 5f)
     {
         if (wrongWayText == null) return;
 
-        wrongWayText.gameObject.SetActive(show);
-        if (show)
+        if (wrongWayCoroutine != null)
+            StopCoroutine(wrongWayCoroutine);
+
+        wrongWayText.gameObject.SetActive(true);
+        wrongWayText.text = "DIRECCION CONTRARIA";
+        wrongWayText.color = Color.red;
+        
+        wrongWayCoroutine = StartCoroutine(HideWrongWayAfterDelay(duration));
+    }
+
+    IEnumerator HideWrongWayAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        if (wrongWayText != null)
         {
-            wrongWayText.text = "⚠️ ¡DIRECCIÓN CONTRARIA! ⚠️";
-            wrongWayText.color = Color.red;
+            wrongWayText.gameObject.SetActive(false);
         }
     }
 
     public void ShowMessage(string message, float duration = 2f)
     {
         if (messageText == null) return;
-
-        if (messageCoroutine != null)
-            StopCoroutine(messageCoroutine);
-
+        
         messageText.gameObject.SetActive(true);
         messageText.text = message;
-        messageCoroutine = StartCoroutine(HideMessageAfterDelay(duration));
+        StartCoroutine(HideMessageAfterDelay(duration));
     }
 
     IEnumerator HideMessageAfterDelay(float delay)
@@ -127,9 +153,8 @@ public class RaceUI : MonoBehaviour
     public void UpdateCheckpointProgress(int completed, int total)
     {
         if (checkpointProgressText == null) return;
-
         checkpointProgressText.text = $"Checkpoints: {completed}/{total}";
-
+        
         if (completed == total)
             checkpointProgressText.color = Color.green;
         else if (completed > total / 2)
@@ -153,16 +178,16 @@ public class RaceUI : MonoBehaviour
 
         string lapLines = "";
         for (int i = 0; i < lapTimes.Count; i++)
-            lapLines += $"Vuelta {i + 1}:  {LapManager.FormatTime(lapTimes[i])}\n";
+            lapLines += $"Vuelta {i + 1}: {LapManager.FormatTime(lapTimes[i])}\n";
 
         if (finishLapTimesText != null)
             finishLapTimesText.text = lapLines;
 
         if (finishBestLapText != null)
-            finishBestLapText.text = $"Mejor vuelta:  {LapManager.FormatTime(bestLap)}";
+            finishBestLapText.text = $"Mejor vuelta: {LapManager.FormatTime(bestLap)}";
 
         if (finishTotalTimeText != null)
-            finishTotalTimeText.text = $"Tiempo total:  {LapManager.FormatTime(total)}";
+            finishTotalTimeText.text = $"Tiempo total: {LapManager.FormatTime(total)}";
 
         if (saveTimeButton != null)
             saveTimeButton.gameObject.SetActive(true);
