@@ -20,7 +20,6 @@ public class NitroPickup : MonoBehaviour
         meshRenderer = GetComponent<MeshRenderer>();
         itemCollider = GetComponent<Collider>();
         
-        // Asegurar que sea trigger
         if (itemCollider != null)
         {
             itemCollider.isTrigger = true;
@@ -49,11 +48,31 @@ public class NitroPickup : MonoBehaviour
         
         if (other.CompareTag("Player"))
         {
-            BoostSystem boostSystem = other.GetComponent<BoostSystem>();
+            BoostSystem boostSystem = null;
             
+            // Buscar en el objeto que colisionó
+            boostSystem = other.GetComponent<BoostSystem>();
+            
+            // Si no está, buscar en el padre
+            if (boostSystem == null && other.transform.parent != null)
+            {
+                boostSystem = other.transform.parent.GetComponent<BoostSystem>();
+            }
+            
+            // Si no está, buscar en toda la jerarquía del coche
             if (boostSystem == null)
             {
-                boostSystem = other.GetComponentInChildren<BoostSystem>();
+                boostSystem = other.GetComponentInParent<BoostSystem>();
+            }
+            
+            // Si no está, buscar en el GameObject con tag Player (por si acaso)
+            if (boostSystem == null)
+            {
+                GameObject player = GameObject.FindGameObjectWithTag("Player");
+                if (player != null)
+                {
+                    boostSystem = player.GetComponent<BoostSystem>();
+                }
             }
             
             if (boostSystem != null)
@@ -70,7 +89,15 @@ public class NitroPickup : MonoBehaviour
             }
             else
             {
-                Debug.LogError("Nitro: No se encontro BoostSystem en el Player");
+                Debug.LogError($"Nitro: No se encontro BoostSystem en el Player. El objeto que colisionó es: {other.gameObject.name}, su tag: {other.tag}");
+                
+                // Listar todos los componentes del objeto para debug
+                Component[] components = other.GetComponents<Component>();
+                Debug.Log($"Componentes en {other.gameObject.name}:");
+                foreach (Component c in components)
+                {
+                    Debug.Log($"  - {c.GetType().Name}");
+                }
             }
         }
     }
@@ -81,16 +108,17 @@ public class NitroPickup : MonoBehaviour
         
         boostSystem.AddBoost(boostAmount);
         
-        if (pickupEffect != null)
-        {
-            GameObject effect = Instantiate(pickupEffect, transform.position, Quaternion.identity);
-            Destroy(effect, 2f);
-        }
+        // Efectos visuales y sonido desactivados temporalmente
+        // if (pickupEffect != null)
+        // {
+        //     GameObject effect = Instantiate(pickupEffect, transform.position, Quaternion.identity);
+        //     Destroy(effect, 2f);
+        // }
         
-        if (pickupSound != null)
-        {
-            AudioSource.PlayClipAtPoint(pickupSound, transform.position, 1f);
-        }
+        // if (pickupSound != null)
+        // {
+        //     AudioSource.PlayClipAtPoint(pickupSound, transform.position, 1f);
+        // }
         
         if (meshRenderer != null) meshRenderer.enabled = false;
         if (itemCollider != null) itemCollider.enabled = false;

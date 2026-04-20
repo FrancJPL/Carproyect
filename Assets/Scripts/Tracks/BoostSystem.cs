@@ -84,13 +84,6 @@ public class BoostSystem : MonoBehaviour
         {
             StopBoost();
         }
-        
-        // Debug para probar (opcional: presionar B para añadir boost)
-        if (Input.GetKeyDown(KeyCode.B))
-        {
-            AddBoost(50f);
-            Debug.Log("Boost añadido manualmente con tecla B");
-        }
     }
     
     void FixedUpdate()
