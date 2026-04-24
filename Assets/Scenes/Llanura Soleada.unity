@@ -245,7 +245,7 @@ GameObject:
   - component: {fileID: 15300126}
   - component: {fileID: 15300125}
   m_Layer: 0
-  m_Name: Particle System
+  m_Name: nitropickupeffect
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5806,7 +5806,7 @@ Transform:
   m_GameObject: {fileID: 182415376}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -119.58, y: 0.94, z: 51.88}
+  m_LocalPosition: {x: -114.18, y: 0.94, z: 51.88}
   m_LocalScale: {x: 0.4, y: 0.4, z: 0.4}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -6997,7 +6997,7 @@ Transform:
   m_GameObject: {fileID: 327338180}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 18.79, y: 0.94, z: -59.76}
+  m_LocalPosition: {x: 18.79, y: 0.94, z: -68.32}
   m_LocalScale: {x: 0.4, y: 0.4, z: 0.4}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -24748,7 +24748,7 @@ Transform:
   m_GameObject: {fileID: 902540073}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 27.44, y: 0.94, z: 76.83}
+  m_LocalPosition: {x: 27.44, y: 0.94, z: 83.46}
   m_LocalScale: {x: 0.4, y: 0.4, z: 0.4}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -30063,12 +30063,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BoostSystem
   maxBoost: 100
   currentBoost: 0
-  boostConsumptionRate: 50
-  boostForce: 2000
+  boostConsumptionRate: 25
+  boostForce: 1000
   minSpeedForBoost: 5
   boostBarFill: {fileID: 705819742}
   boostPercentageText: {fileID: 240531864}
-  boostParticles: {fileID: 0}
+  boostParticles: {fileID: 1397831966}
 --- !u!1 &963053054
 GameObject:
   m_ObjectHideFlags: 0
@@ -31730,7 +31730,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1397831967
 Transform:
   m_ObjectHideFlags: 0
@@ -31962,7 +31962,7 @@ ParticleSystem:
     startSpeed:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 4
+      scalar: 10
       minScalar: 5
       maxCurve:
         serializedVersion: 2
@@ -32663,7 +32663,7 @@ ParticleSystem:
     rateOverTime:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 19
+      scalar: 40
       minScalar: 10
       maxCurve:
         serializedVersion: 2
@@ -37141,6 +37141,58 @@ Transform:
   m_Children: []
   m_Father: {fileID: 952700595}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1573494347
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1573494349}
+  - component: {fileID: 1573494348}
+  m_Layer: 0
+  m_Name: BoostSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1573494348
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1573494347}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2fef4433eacee1341ad7593b646b764e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BoostSystem
+  maxBoost: 100
+  currentBoost: 0
+  boostConsumptionRate: 25
+  boostForce: 1000
+  minSpeedForBoost: 5
+  boostBarFill: {fileID: 705819742}
+  boostPercentageText: {fileID: 240531864}
+  boostParticles: {fileID: 1397831966}
+--- !u!4 &1573494349
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1573494347}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 114.20898, y: 2.95098, z: -3.68692}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1584244307
 GameObject:
   m_ObjectHideFlags: 0
@@ -38061,7 +38113,7 @@ Transform:
   m_GameObject: {fileID: 1715367998}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -162.03, y: 0.94, z: -76.82}
+  m_LocalPosition: {x: -157.15, y: 0.94, z: -76.82}
   m_LocalScale: {x: 0.4, y: 0.4, z: 0.4}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -39841,7 +39893,7 @@ Transform:
   m_GameObject: {fileID: 2127265697}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 116.98, y: 0.94, z: -132.8}
+  m_LocalPosition: {x: 116.98, y: 0.94, z: -120.12}
   m_LocalScale: {x: 0.4, y: 0.4, z: 0.4}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -39920,3 +39972,4 @@ SceneRoots:
   - {fileID: 327338185}
   - {fileID: 1715368003}
   - {fileID: 2127265702}
+  - {fileID: 1573494349}
