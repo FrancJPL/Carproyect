@@ -40,4 +40,4 @@ public class OpcionesResolucion : MonoBehaviour
         
         Screen.SetResolution(ancho, alto, Screen.fullScreen);
     }
-}    
+}
