@@ -3,10 +3,10 @@ using UnityEngine;
 public class CarEngineSound : MonoBehaviour
 {
     [Header("Audio Sources - Motor")]
-    public AudioSource acceleratingSource;  // Aceleración (ÚNICO sonido de motor)
+    public AudioSource acceleratingSource;
 
     [Header("Audio Sources - Turbo")]
-    public AudioSource blowOffSource;       // Sonido "psshh" al soltar turbo
+    public AudioSource blowOffSource;
 
     [Header("Referencias")]
     public Rigidbody carRigidbody;
@@ -20,57 +20,51 @@ public class CarEngineSound : MonoBehaviour
     public float turboPitchMultiplier = 1.3f;
     public KeyCode turboKey = KeyCode.LeftShift;
 
-    // Variables internas
     private bool isTurboActive = false;
     private bool wasTurboActive = false;
 
     void Start()
     {
-        // Configurar loop del motor
         acceleratingSource.loop = true;
-        
-        // Reproducir sonido del motor
         acceleratingSource.Play();
     }
 
     void Update()
     {
-        // Detectar estado del turbo
         isTurboActive = Input.GetKey(turboKey);
-        
-        // Velocidad actual en km/h
+
         float currentSpeed = carRigidbody.linearVelocity.magnitude * 3.6f;
         float t = Mathf.Clamp01(currentSpeed / maxSpeed);
-        
-        // ---- SONIDO DEL MOTOR ----
-        // Volumen: más fuerte al ir rápido
-        acceleratingSource.volume = Mathf.Lerp(0.3f, 0.9f, t);
-        
+
+        // -----------------------------
+        // 🔥 VOLUMEN DEL MOTOR CONTROLADO POR EL SLIDER
+        // -----------------------------
+        acceleratingSource.volume = Mathf.Lerp(0.3f, 0.9f, t) * PauseMenu.volumenMotorGlobal;
+
         // Pitch base del motor
         float motorPitch = Mathf.Lerp(minPitch, maxPitch, t);
-        
-        // ---- TURBO: modifica el pitch si está activo ----
+
+        // Turbo activo → pitch aumentado
         if (isTurboActive && currentSpeed > 30f)
         {
-            // Aplica multiplicador de pitch
             acceleratingSource.pitch = motorPitch * turboPitchMultiplier;
         }
         else
         {
-            // Sin turbo: pitch normal
             acceleratingSource.pitch = motorPitch;
         }
-        
-        // ---- SONIDO BLOW-OFF (psshh) al soltar el turbo ----
+
+        // -----------------------------
+        // 🔥 SONIDO DEL TURBO CONTROLADO POR EL MISMO SLIDER
+        // -----------------------------
         if (wasTurboActive && !isTurboActive && blowOffSource != null && currentSpeed > 30f)
         {
-            blowOffSource.PlayOneShot(blowOffSource.clip, 0.7f);
+            blowOffSource.PlayOneShot(blowOffSource.clip, 0.7f * PauseMenu.volumenMotorGlobal);
         }
-        
-        // Guardar estado anterior
+
         wasTurboActive = isTurboActive;
     }
-    
+
     void OnGUI()
     {
         if (isTurboActive)
