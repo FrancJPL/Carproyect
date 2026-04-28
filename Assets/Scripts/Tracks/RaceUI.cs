@@ -31,7 +31,6 @@ public class RaceUI : MonoBehaviour
     public TextMeshProUGUI finishBestLapText;
     public TextMeshProUGUI finishTotalTimeText;
     public Button restartButton;
-    public Button saveTimeButton;
     public Button mainMenuButton;
 
     [Header("Guardado")]
@@ -61,9 +60,6 @@ public class RaceUI : MonoBehaviour
 
         if (mainMenuButton != null)
             mainMenuButton.onClick.AddListener(GoToMainMenu);
-
-        if (saveTimeButton != null)
-            saveTimeButton.onClick.AddListener(OnSaveTimeButtonPressed);
 
         if (messageText != null)
             messageText.gameObject.SetActive(false);
@@ -189,24 +185,16 @@ public class RaceUI : MonoBehaviour
         if (finishTotalTimeText != null)
             finishTotalTimeText.text = $"Tiempo total: {LapManager.FormatTime(total)}";
 
-        if (saveTimeButton != null)
-            saveTimeButton.gameObject.SetActive(true);
-    }
-
-    public void OnSaveTimeButtonPressed()
-    {
-        if (timeSaver == null)
+        // AUTO-GUARDADO: Solo si está logueado
+        if (PlayerSession.IsLoggedIn && timeSaver != null)
         {
-            Debug.LogError("RaceUI: TimeSaver no asignado");
-            return;
+            timeSaver.AutoGuardarSiLogueado(
+                LapManager.FormatTime(bestLap),
+                LapManager.FormatTime(total),
+                carName,
+                mapName
+            );
         }
-
-        timeSaver.AbrirPanelGuardar(
-            LapManager.FormatTime(currentBestLap),
-            LapManager.FormatTime(currentTotalTime),
-            currentCarName,
-            currentMapName
-        );
     }
 
     void RestartRace()
