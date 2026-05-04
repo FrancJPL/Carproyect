@@ -59,7 +59,14 @@ public class TimeSaver : MonoBehaviour
             byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonData);
             request.uploadHandler = new UploadHandlerRaw(bodyRaw);
             request.downloadHandler = new DownloadHandlerBuffer();
+            
+            // ✅ Cabeceras esenciales
             request.SetRequestHeader("Content-Type", "application/json");
+            request.SetRequestHeader("Accept", "application/json");
+            request.SetRequestHeader("ngrok-skip-browser-warning", "true");
+
+            // ✅ Saltarse validación de certificado
+            request.certificateHandler = new BypassCertificate();
             
             yield return request.SendWebRequest();
             
@@ -73,6 +80,7 @@ public class TimeSaver : MonoBehaviour
             }
             else
             {
+                Debug.LogError("❌ Error guardando tiempo: " + request.error + " | URL: " + apiUrl);
                 if (textoEstado != null)
                     textoEstado.text = "❌ Error de conexión";
                 

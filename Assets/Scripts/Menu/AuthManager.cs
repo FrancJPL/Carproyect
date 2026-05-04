@@ -69,7 +69,14 @@ public class AuthManager : MonoBehaviour
             byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(json);
             request.uploadHandler = new UploadHandlerRaw(bodyRaw);
             request.downloadHandler = new DownloadHandlerBuffer();
+            
+            // ✅ Cabeceras esenciales
             request.SetRequestHeader("Content-Type", "application/json");
+            request.SetRequestHeader("Accept", "application/json");
+            request.SetRequestHeader("ngrok-skip-browser-warning", "true");
+
+            // ✅ Saltarse validación de certificado (evita el error de "Cannot connect to destination host" en algunos casos)
+            request.certificateHandler = new BypassCertificate();
 
             yield return request.SendWebRequest();
 
@@ -85,8 +92,8 @@ public class AuthManager : MonoBehaviour
             }
             else
             {
-                Debug.LogError("❌ Error login: " + request.error);
-                if (textoEstado != null) textoEstado.text = "❌ Error: Usuario o password incorrectos";
+                Debug.LogError("❌ Error login: " + request.error + " | URL: " + loginUrl);
+                if (textoEstado != null) textoEstado.text = "❌ Error de conexión con el servidor";
             }
         }
     }
@@ -133,5 +140,14 @@ public class AuthManager : MonoBehaviour
     {
         public string username;
         public string password;
+    }
+}
+
+// ✅ Clase auxiliar para saltarse la validación de certificados SSL de ngrok en Unity
+public class BypassCertificate : CertificateHandler
+{
+    protected override bool ValidateCertificate(byte[] certificateData)
+    {
+        return true; 
     }
 }

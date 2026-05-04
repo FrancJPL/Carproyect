@@ -11,7 +11,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Llanura Soleada.unity
     guid: 99c9720ab356a0642a771bea13969a05
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/PersonalizarCoches.unity
     guid: 4690a5c5dbfff9645b5e260d4257a651
   - enabled: 1

@@ -7046,7 +7046,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03da98fe5ccffb141a1dadaa297a8f6c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AuthManager
-  loginUrl: http://localhost:3000/login
+  loginUrl: https://roman-hanky-automaker.ngrok-free.dev/login
   inputUsername: {fileID: 346257729}
   inputPassword: {fileID: 868729673}
   textoEstado: {fileID: 514189526}
